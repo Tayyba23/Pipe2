@@ -8,7 +8,7 @@ node {
         stage ('Loading Customer SI Data') {
 	   try {        
 				
-			bat "load_customer.bat"
+			bat "load_customer_SI.bat"
 			def logCust = readFile "${env.WORKSPACE}/load_customer_SI_error.txt"
 			echo logCust
 			if (logCust.contains('0')) {
