@@ -1,0 +1,63 @@
+DEFINE JOB "Customer_SI"
+DESCRIPTION 'Data Loading Job for Source Image'
+(
+DEFINE SCHEMA SOURCE_SCHEMA
+DESCRIPTION 'SCHEMA INFORMATION'
+(
+	  Cust_Id VARCHAR(10),
+      Income VARCHAR(20),
+      Date_Of_Birth VARCHAR(20),
+      Date_Joined_Bank VARCHAR(20),
+      Nbr_Children VARCHAR(20) ,
+      Gender VARCHAR(5) ,
+      Marital_Status VARCHAR(10) ,
+      Name_Prefix VARCHAR(10) ,
+      First_Name VARCHAR(30) ,
+      Last_Name VARCHAR(30) ,
+      Street_Nbr VARCHAR(10) ,
+      Street_Name VARCHAR(30) ,
+      Postal_Code VARCHAR(10) ,
+      City_Name VARCHAR(20) ,
+      State_Code VARCHAR(10) ,
+      Start_Ts  VARCHAR(40) ,
+      End_Ts VARCHAR(40),
+      Start_Date VARCHAR(12) ,
+      End_Date VARCHAR(12) ,
+      Record_Deleted_Flag VARCHAR(12),
+      Ctl_Id VARCHAR(12) ,
+      File_Id VARCHAR(12) ,
+      Process_Name VARCHAR(30) ,
+      Process_Id VARCHAR(50) ,
+      Update_Process_Name VARCHAR(30) ,
+      Update_Process_Id VARCHAR(30)
+);
+DEFINE OPERATOR EXPORT_OPERATOR
+DESCRIPTION 'TERADATA PARALLEL TRANSPORTER EXPORT Operator'
+TYPE EXPORT
+SCHEMA SOURCE_SCHEMA
+ATTRIBUTES
+(
+VARCHAR TdpId = '192.168.74.134',
+VARCHAR UserName = 'dbc',
+VARCHAR UserPassword = 'dbc',
+VARCHAR SelectStmt = 'SELECT "Cust_Id", "Income", "Date_Of_Birth", "Date_Joined_Bank", "Nbr_Children", "Gender", "Marital_Status", "Name_Prefix", "First_Name", "Last_Name", "Street_Nbr", "Street_Name", "Postal_Code", "City_Name", "State_Code", "Start_Ts", "End_Ts", "Start_Date", "End_Date", "Record_Deleted_Flag", "Ctl_Id", "File_Id", "Process_Name", "Process_Id", "Update_Process_Name", "Update_Process_Id" FROM "GDEV1T_STG"."Cust_" where GDEV1T_STG.Cust_.process_ID=6;'
+);
+DEFINE OPERATOR LOAD_OPERATOR
+DESCRIPTION 'TERADATA PARALLEL TRANSPORTER LOAD Operator'
+TYPE LOAD
+SCHEMA SOURCE_SCHEMA
+ATTRIBUTES
+(
+VARCHAR TdpId = '192.168.74.134',
+VARCHAR UserName = 'dbc',
+VARCHAR UserPassword = 'dbc',
+VARCHAR TargetTable = 'GDEV1T_STG'||'.Cust_SI',
+VARCHAR LogTable = 'GDEV1T_STG'||'.Cust_SI_Log'
+);
+STEP DO_SETUP
+(
+APPLY
+('INSERT INTO GDEV1T_STG.Cust_SI  (Cust_Id, Income, Date_Of_Birth, Date_Joined_Bank, Nbr_Children, Gender, Marital_Status, Name_Prefix, First_Name, Last_Name, Street_Nbr, Street_Name, Postal_Code, City_Name, State_Code, Start_Ts, End_Ts, Start_Date, End_Date, Record_Deleted_Flag, Ctl_Id, File_Id, Process_Name, Process_Id, Update_Process_Name, Update_Process_Id) VALUES (:Cust_Id,:Income,:Date_Of_Birth,:Date_Joined_Bank,:Nbr_Children,:Gender,:Marital_Status,:Name_Prefix,:First_Name,:Last_Name,:Street_Nbr,:Street_Name,:Postal_Code,:City_Name,:State_Code,:Start_Ts,:End_Ts,:Start_Date,:End_Date,:Record_Deleted_Flag,:Ctl_Id,:File_Id,:Process_Name,:Process_Id,:Update_Process_Name,:Update_Process_Id);')
+TO OPERATOR (LOAD_OPERATOR [1])
+SELECT * FROM OPERATOR (EXPORT_OPERATOR [2]););
+);
